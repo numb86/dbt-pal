@@ -1,0 +1,12 @@
+dbt_pal_test:
+  target: pal
+  outputs:
+    pal:
+      type: pal
+      db_profile: bq
+    bq:
+      type: bigquery
+      method: oauth
+      project: "{{ env_var('GOOGLE_CLOUD_PROJECT') }}"
+      dataset: dest
+      location: asia-northeast1

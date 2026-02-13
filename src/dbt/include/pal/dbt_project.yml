@@ -1,0 +1,3 @@
+config-version: 2
+name: pal
+macro-paths: ["macros"] # add `macros` directory to macro search path

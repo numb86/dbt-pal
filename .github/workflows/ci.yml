@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Lint
+        run: |
+          pip install ruff
+          ruff check .
+
+      - name: Install
+        run: pip install .
+
+      - name: Verify pal adapter is registered
+        run: dbt --version | grep -q -- "- pal:"
+
+  integration-test:
+    if: github.event_name == 'push'
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install "dbt-core==1.11.3" "dbt-bigquery==1.11.0"
+          pip install .
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ secrets.GOOGLE_CLOUD_SA_KEY }}
+
+      - name: Verify BigQuery access
+        run: bq ls
+
+      - name: Load test data into BigQuery
+        run: bq load --source_format=CSV --autodetect ${{ vars.GOOGLE_CLOUD_PROJECT }}:src.test_table tests/integration/data/test_table.csv
+
+      - name: Run dbt
+        run: dbt run --project-dir tests/integration --profiles-dir tests/integration
+
+      - name: Verify SQL model output
+        run: bq query --use_legacy_sql=false --format=csv "SELECT * FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.dest.sql_model\` ORDER BY id" | diff - tests/integration/expected/sql_model.csv
+
+      - name: Verify Python model output
+        run: bq query --use_legacy_sql=false --format=csv "SELECT * FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.dest.python_model\` ORDER BY id" | diff - tests/integration/expected/python_model.csv
+
+      - name: Cleanup
+        if: always()
+        run: |
+          bq rm -f -t ${{ vars.GOOGLE_CLOUD_PROJECT }}:dest.sql_model
+          bq rm -f -t ${{ vars.GOOGLE_CLOUD_PROJECT }}:dest.python_model
+          bq rm -f -t ${{ vars.GOOGLE_CLOUD_PROJECT }}:src.test_table

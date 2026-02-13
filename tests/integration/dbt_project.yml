@@ -1,0 +1,12 @@
+name: dbt_pal_test
+version: "1.0.0"
+config-version: 2
+
+profile: dbt_pal_test
+
+model-paths: ["models"]
+
+models:
+  dbt_pal_test:
+    python_model:
+      +multiplier: 3

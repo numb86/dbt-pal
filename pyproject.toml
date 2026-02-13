@@ -1,0 +1,23 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dbt-pal"
+dynamic = ["version"]
+description = "dbt adapter for running Python models locally against BigQuery, without Dataproc"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+dependencies = [
+    "dbt-common>=1.10,<2.0",
+    "dbt-adapters>=1.19.0,<2.0",
+    "dbt-core>=1.11.0",
+    "dbt-bigquery>=1.11.0,<2.0",
+]
+readme = "README.md"
+
+[tool.hatch.version]
+path = "src/dbt/adapters/pal/__version__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/dbt"]
