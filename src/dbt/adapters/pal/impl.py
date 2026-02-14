@@ -219,6 +219,12 @@ class PalAdapter(BaseAdapter):
             )
             db_credentials = db_profile.credentials
 
+            if db_credentials.type != "bigquery":
+                raise NotImplementedError(
+                    f"dbt-pal currently only supports BigQuery, but db_profile"
+                    f" '{db_profile_target_name}' has type '{db_credentials.type}'"
+                )
+
             # Add the Adapter pointed to by db_credentials.type to the macro search path
             # This makes materialization macros searched in the order: pal -> bigquery -> default
             pal_plugin = FACTORY.get_plugin_by_name("pal")
