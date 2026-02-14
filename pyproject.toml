@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "dbt-pal"
 dynamic = ["version"]
-description = "dbt adapter for running Python models locally against BigQuery, without Dataproc"
+description = "A dbt adapter for running Python models without Dataproc or BigQuery DataFrames."
 requires-python = ">=3.11"
 license = { text = "Apache-2.0" }
 dependencies = [
