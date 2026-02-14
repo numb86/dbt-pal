@@ -206,9 +206,10 @@ class PalAdapter(BaseAdapter):
         db_profile_target_name = pal_credentials.db_profile
 
         # Raise an error if the `db_profile` property in `profiles.yml` is not set
-        assert db_profile_target_name, (
-            "pal credentials must have a `db_profile` property set"
-        )
+        if not db_profile_target_name:
+            raise ValueError(
+                "pal credentials must have a `db_profile` property set"
+            )
 
         with _release_plugin_lock():
             # Get the `Credentials` for the `target` specified by the db_profile field in `profiles.yml`
