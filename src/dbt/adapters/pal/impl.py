@@ -96,6 +96,7 @@ class PalAdapterWrapper:
         # compiled_code: Python code compiled by the Adapter instance. Various boilerplate is appended to the user's code.
 
         import re
+        import sys
         print("[pal] Executing Python model via exec()")
 
         # Strip unnecessary parts from compiled_code
@@ -117,8 +118,14 @@ class PalAdapterWrapper:
         # Execute clean_code. This does not invoke the user's Python model code.
         # As a result of execution, functions, classes, variables, etc. defined in `clean_code` are stored in `namespace`.
         # The user's Python model code is stored under the name `model`.
-        namespace = {}
-        exec(clean_code, namespace)
+        # Temporarily add the project root to sys.path so that user-defined modules (e.g. `utils`) can be imported
+        project_root = self.config.project_root # Directory where `dbt_project.yml` is located
+        sys.path.insert(0, project_root) # add `project_root` to the list of directories Python searches for modules
+        try:
+            namespace = {}
+            exec(clean_code, namespace)
+        finally:
+            sys.path.remove(project_root)
 
         # Retrieve and invoke the user's python model code from `namespace`
         # dbtObj requires a function that takes a table name and returns a DataFrame
