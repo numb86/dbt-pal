@@ -2,7 +2,7 @@
 
 dbt-pal is **P**ython **A**dapter **L**ayer
 
-A dbt adapter for running Python models without Dataproc.
+A dbt adapter for running Python models without Dataproc or BigQuery DataFrames.
 
 - SQL models work the same as dbt-bigquery
 - Python models are executed in the process running dbt, and the results are written to BigQuery

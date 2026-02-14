@@ -109,7 +109,7 @@ class PalAdapterWrapper:
 
         # `compiled_code` contains `# COMMAND ----------` as a delimiter
         # Split using it as a delimiter, and keep only the first element and the next one
-        # The remaining parts are Dataproc-specific code, unnecessary for dbt-pal
+        # The remaining parts are dbt-bigquery-specific code, unnecessary for dbt-pal
         parts = clean_code.split("# COMMAND ----------")
         if len(parts) >= 2:
             clean_code = parts[0] + parts[1]
