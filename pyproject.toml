@@ -16,6 +16,11 @@ dependencies = [
 ]
 readme = "README.md"
 
+[project.urls]
+Homepage = "https://github.com/numb86/dbt-pal"
+Repository = "https://github.com/numb86/dbt-pal.git"
+Issues = "https://github.com/numb86/dbt-pal/issues"
+
 [tool.hatch.version]
 path = "src/dbt/adapters/pal/__version__.py"
 
