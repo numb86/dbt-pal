@@ -63,9 +63,13 @@ jobs:
       - name: Verify Python model output
         run: bq query --use_legacy_sql=false --format=csv "SELECT * FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.dest.python_model\` ORDER BY id" | diff - tests/integration/expected/python_model.csv
 
+      - name: Verify Python model with import output
+        run: bq query --use_legacy_sql=false --format=csv "SELECT * FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.dest.python_model_with_import\` ORDER BY id" | diff - tests/integration/expected/python_model_with_import.csv
+
       - name: Cleanup
         if: always()
         run: |
           bq rm -f -t ${{ vars.GOOGLE_CLOUD_PROJECT }}:dest.sql_model
           bq rm -f -t ${{ vars.GOOGLE_CLOUD_PROJECT }}:dest.python_model
+          bq rm -f -t ${{ vars.GOOGLE_CLOUD_PROJECT }}:dest.python_model_with_import
           bq rm -f -t ${{ vars.GOOGLE_CLOUD_PROJECT }}:src.test_table
