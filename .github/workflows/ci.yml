@@ -66,10 +66,22 @@ jobs:
       - name: Verify Python model with import output
         run: bq query --use_legacy_sql=false --format=csv "SELECT * FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.dest.python_model_with_import\` ORDER BY id" | diff - tests/integration/expected/python_model_with_import.csv
 
+      - name: Verify empty DataFrame model output
+        run: |
+          test "$(bq query --use_legacy_sql=false --format=csv "SELECT column_name FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.dest.INFORMATION_SCHEMA.COLUMNS\` WHERE table_name = 'python_model_empty_df'" | tail -1)" = "_dummy"
+          test "$(bq query --use_legacy_sql=false --format=csv "SELECT COUNT(*) FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.dest.python_model_empty_df\`" | tail -1)" = "0"
+
+      - name: Verify zero rows model output
+        run: |
+          test "$(bq query --use_legacy_sql=false --format=csv "SELECT column_name FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.dest.INFORMATION_SCHEMA.COLUMNS\` WHERE table_name = 'python_model_zero_rows'" | tail -1)" = "col"
+          test "$(bq query --use_legacy_sql=false --format=csv "SELECT COUNT(*) FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.dest.python_model_zero_rows\`" | tail -1)" = "0"
+
       - name: Cleanup
         if: always()
         run: |
           bq rm -f -t ${{ vars.GOOGLE_CLOUD_PROJECT }}:dest.sql_model
           bq rm -f -t ${{ vars.GOOGLE_CLOUD_PROJECT }}:dest.python_model
           bq rm -f -t ${{ vars.GOOGLE_CLOUD_PROJECT }}:dest.python_model_with_import
+          bq rm -f -t ${{ vars.GOOGLE_CLOUD_PROJECT }}:dest.python_model_empty_df
+          bq rm -f -t ${{ vars.GOOGLE_CLOUD_PROJECT }}:dest.python_model_zero_rows
           bq rm -f -t ${{ vars.GOOGLE_CLOUD_PROJECT }}:src.test_table
