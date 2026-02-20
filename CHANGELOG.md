@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/numb86/dbt-pal/compare/v0.2.0...v0.3.0) (2026-02-20)
+
+
+### Features
+
+* handle empty DataFrame with no columns when writing to BigQuery ([#15](https://github.com/numb86/dbt-pal/issues/15)) ([fc7bccb](https://github.com/numb86/dbt-pal/commit/fc7bccb8922fcf78341139dbff17cbcb8f299e10))
+
 ## [0.2.0](https://github.com/numb86/dbt-pal/compare/v0.1.0...v0.2.0) (2026-02-14)
 
 
