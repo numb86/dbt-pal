@@ -160,6 +160,11 @@ class PalAdapterWrapper:
         job_config = LoadJobConfig(
             write_disposition=WriteDisposition.WRITE_TRUNCATE,
         )
+        # If the DataFrame has no columns (e.g. pd.DataFrame()), add a dummy column
+        # so that BigQuery can create a table with at least one column
+        if len(df.columns) == 0:
+            df = df.rename_axis('_dummy').reset_index()
+
         job = client.load_table_from_dataframe(df, table_ref, job_config=job_config)
         job.result()
 
