@@ -54,6 +54,25 @@ jobs:
       - name: Load test data into BigQuery
         run: bq load --source_format=CSV --autodetect ${{ vars.GOOGLE_CLOUD_PROJECT }}:src.test_table tests/integration/data/test_table.csv
 
+      # `dbt-core@1.11.3` calls `deepcopy()` with a probability of 1/5001
+      # https://github.com/dbt-labs/dbt-core/blob/v1.11.3/core/dbt/parser/models.py#L273
+      # Below is the test code that reproduces this situation
+      # It tests that `deepcopy()` is called as expected, and that `dbt run` does not fail even when `deepcopy()` is invoked.
+      - name: Run dbt (with deepcopy forced via parser sampling)
+        run: |
+          python -c "
+          from unittest.mock import patch
+          from copy import deepcopy
+          from dbt.cli.main import dbtRunner
+          with patch('dbt.parser.models.random.randint', return_value=5000), \
+               patch('dbt.parser.models.deepcopy', wraps=deepcopy) as mock_deepcopy:
+              result = dbtRunner().invoke(['run', '--project-dir', 'tests/integration', '--profiles-dir', 'tests/integration'])
+              if not result.success:
+                  raise SystemExit(1)
+              assert mock_deepcopy.called, \
+                  'deepcopy was not triggered - 5000 may no longer be the correct value. Check dbt.parser.models.'
+          "
+
       - name: Run dbt
         run: dbt run --project-dir tests/integration --profiles-dir tests/integration
 
