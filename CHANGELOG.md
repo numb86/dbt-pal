@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/numb86/dbt-pal/compare/v0.3.0...v0.3.1) (2026-03-03)
+
+
+### Bug Fixes
+
+* prevent infinite recursion in PalCredentialsWrapper on deepcopy ([#19](https://github.com/numb86/dbt-pal/issues/19)) ([c6fcc27](https://github.com/numb86/dbt-pal/commit/c6fcc27a6e59cde633d6852c9ca9317a01529d91))
+
 ## [0.3.0](https://github.com/numb86/dbt-pal/compare/v0.2.0...v0.3.0) (2026-02-20)
 
 
