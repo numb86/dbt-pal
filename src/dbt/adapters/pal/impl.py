@@ -72,6 +72,13 @@ class PalCredentialsWrapper:
 
     def __getattr__(self, name):
         # Delegates everything except the type property to `self._db_credentials`
+
+        # Python's `deepcopy()` creates instances without executing `__init__()`, resulting in `self._db_credentials` being non-existent
+        # Calling `getattr(self._db_credentials, name)` in that state would cause infinite recursion,
+        # so if `__getattr__()` is called because `self._db_credentials` is missing, raise an error.
+        if name == "_db_credentials":
+            raise AttributeError(name)
+
         return getattr(self._db_credentials, name)
 
 
