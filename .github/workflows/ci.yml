@@ -7,14 +7,21 @@ on:
     branches: [main]
 
 jobs:
-  check:
+  lint-and-install:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - python: "3.11"
+          - python: "3.12"
+          - python: "3.13"
     steps:
       - uses: actions/checkout@v5
 
       - uses: actions/setup-python@v6
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python }}
 
       - name: Lint
         run: |
@@ -29,18 +36,32 @@ jobs:
 
   integration-test:
     if: github.event_name == 'push'
-    needs: check
+    needs: lint-and-install
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        include:
+          - python: "3.11"
+            dbt-core: "1.11.3"
+            dbt-bigquery: "1.11.0"
+          - python: "3.12"
+            dbt-core: "1.11.3"
+            dbt-bigquery: "1.11.0"
+          - python: "3.13"
+            dbt-core: "1.11.3"
+            dbt-bigquery: "1.11.0"
     steps:
       - uses: actions/checkout@v5
 
       - uses: actions/setup-python@v6
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python }}
 
       - name: Install dependencies
         run: |
-          pip install "dbt-core==1.11.3" "dbt-bigquery==1.11.0"
+          pip install "dbt-core==${{ matrix.dbt-core }}" "dbt-bigquery==${{ matrix.dbt-bigquery }}"
           pip install .
 
       - name: Authenticate to Google Cloud
@@ -104,3 +125,15 @@ jobs:
           bq rm -f -t ${{ vars.GOOGLE_CLOUD_PROJECT }}:dest.python_model_empty_df
           bq rm -f -t ${{ vars.GOOGLE_CLOUD_PROJECT }}:dest.python_model_zero_rows
           bq rm -f -t ${{ vars.GOOGLE_CLOUD_PROJECT }}:src.test_table
+
+  check:
+    if: always()
+    needs: [lint-and-install, integration-test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify required jobs succeeded
+        run: |
+          test "${{ needs.lint-and-install.result }}" = "success"
+          if [ "${{ github.event_name }}" = "push" ]; then
+            test "${{ needs.integration-test.result }}" = "success"
+          fi
