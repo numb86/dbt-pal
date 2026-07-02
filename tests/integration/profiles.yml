@@ -8,5 +8,5 @@ dbt_pal_test:
       type: bigquery
       method: oauth
       project: "{{ env_var('GOOGLE_CLOUD_PROJECT') }}"
-      dataset: dest
+      dataset: "{{ env_var('DEST_DATASET', 'dest') }}"
       location: asia-northeast1
