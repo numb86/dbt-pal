@@ -52,6 +52,15 @@ jobs:
           - python: "3.13"
             dbt-core: "1.11.3"
             dbt-bigquery: "1.11.0"
+          - python: "3.11"
+            dbt-core: "1.12.0b3"
+            dbt-bigquery: "1.12.0b1"
+          - python: "3.12"
+            dbt-core: "1.12.0b3"
+            dbt-bigquery: "1.12.0b1"
+          - python: "3.13"
+            dbt-core: "1.12.0b3"
+            dbt-bigquery: "1.12.0b1"
     steps:
       - uses: actions/checkout@v5
 
