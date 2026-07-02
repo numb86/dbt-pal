@@ -38,9 +38,12 @@ jobs:
     if: github.event_name == 'push'
     needs: lint-and-install
     runs-on: ubuntu-latest
+    # Job-specific datasets so that matrix jobs (and concurrent workflow runs) never share tables
+    env:
+      SRC_DATASET: src_${{ github.run_id }}_${{ strategy.job-index }}
+      DEST_DATASET: dest_${{ github.run_id }}_${{ strategy.job-index }}
     strategy:
       fail-fast: false
-      max-parallel: 1
       matrix:
         include:
           - python: "3.11"
@@ -84,8 +87,14 @@ jobs:
       - name: Verify BigQuery access
         run: bq ls
 
+      # --force tolerates a dataset left behind by a failed cleanup when the job is re-run
+      - name: Create datasets
+        run: |
+          bq mk --force --location=asia-northeast1 -d ${{ vars.GOOGLE_CLOUD_PROJECT }}:$SRC_DATASET
+          bq mk --force --location=asia-northeast1 -d ${{ vars.GOOGLE_CLOUD_PROJECT }}:$DEST_DATASET
+
       - name: Load test data into BigQuery
-        run: bq load --source_format=CSV --autodetect ${{ vars.GOOGLE_CLOUD_PROJECT }}:src.test_table tests/integration/data/test_table.csv
+        run: bq load --source_format=CSV --autodetect --replace ${{ vars.GOOGLE_CLOUD_PROJECT }}:$SRC_DATASET.test_table tests/integration/data/test_table.csv
 
       # `dbt-core@1.11.3` calls `deepcopy()` with a probability of 1/5001
       # https://github.com/dbt-labs/dbt-core/blob/v1.11.3/core/dbt/parser/models.py#L273
@@ -110,33 +119,29 @@ jobs:
         run: dbt run --project-dir tests/integration --profiles-dir tests/integration
 
       - name: Verify SQL model output
-        run: bq query --use_legacy_sql=false --format=csv "SELECT * FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.dest.sql_model\` ORDER BY id" | diff - tests/integration/expected/sql_model.csv
+        run: bq query --use_legacy_sql=false --format=csv "SELECT * FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.$DEST_DATASET.sql_model\` ORDER BY id" | diff - tests/integration/expected/sql_model.csv
 
       - name: Verify Python model output
-        run: bq query --use_legacy_sql=false --format=csv "SELECT * FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.dest.python_model\` ORDER BY id" | diff - tests/integration/expected/python_model.csv
+        run: bq query --use_legacy_sql=false --format=csv "SELECT * FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.$DEST_DATASET.python_model\` ORDER BY id" | diff - tests/integration/expected/python_model.csv
 
       - name: Verify Python model with import output
-        run: bq query --use_legacy_sql=false --format=csv "SELECT * FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.dest.python_model_with_import\` ORDER BY id" | diff - tests/integration/expected/python_model_with_import.csv
+        run: bq query --use_legacy_sql=false --format=csv "SELECT * FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.$DEST_DATASET.python_model_with_import\` ORDER BY id" | diff - tests/integration/expected/python_model_with_import.csv
 
       - name: Verify empty DataFrame model output
         run: |
-          test "$(bq query --use_legacy_sql=false --format=csv "SELECT column_name FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.dest.INFORMATION_SCHEMA.COLUMNS\` WHERE table_name = 'python_model_empty_df'" | tail -1)" = "_dummy"
-          test "$(bq query --use_legacy_sql=false --format=csv "SELECT COUNT(*) FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.dest.python_model_empty_df\`" | tail -1)" = "0"
+          test "$(bq query --use_legacy_sql=false --format=csv "SELECT column_name FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.$DEST_DATASET.INFORMATION_SCHEMA.COLUMNS\` WHERE table_name = 'python_model_empty_df'" | tail -1)" = "_dummy"
+          test "$(bq query --use_legacy_sql=false --format=csv "SELECT COUNT(*) FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.$DEST_DATASET.python_model_empty_df\`" | tail -1)" = "0"
 
       - name: Verify zero rows model output
         run: |
-          test "$(bq query --use_legacy_sql=false --format=csv "SELECT column_name FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.dest.INFORMATION_SCHEMA.COLUMNS\` WHERE table_name = 'python_model_zero_rows'" | tail -1)" = "col"
-          test "$(bq query --use_legacy_sql=false --format=csv "SELECT COUNT(*) FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.dest.python_model_zero_rows\`" | tail -1)" = "0"
+          test "$(bq query --use_legacy_sql=false --format=csv "SELECT column_name FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.$DEST_DATASET.INFORMATION_SCHEMA.COLUMNS\` WHERE table_name = 'python_model_zero_rows'" | tail -1)" = "col"
+          test "$(bq query --use_legacy_sql=false --format=csv "SELECT COUNT(*) FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.$DEST_DATASET.python_model_zero_rows\`" | tail -1)" = "0"
 
       - name: Cleanup
         if: always()
         run: |
-          bq rm -f -t ${{ vars.GOOGLE_CLOUD_PROJECT }}:dest.sql_model
-          bq rm -f -t ${{ vars.GOOGLE_CLOUD_PROJECT }}:dest.python_model
-          bq rm -f -t ${{ vars.GOOGLE_CLOUD_PROJECT }}:dest.python_model_with_import
-          bq rm -f -t ${{ vars.GOOGLE_CLOUD_PROJECT }}:dest.python_model_empty_df
-          bq rm -f -t ${{ vars.GOOGLE_CLOUD_PROJECT }}:dest.python_model_zero_rows
-          bq rm -f -t ${{ vars.GOOGLE_CLOUD_PROJECT }}:src.test_table
+          bq rm -r -f -d ${{ vars.GOOGLE_CLOUD_PROJECT }}:$SRC_DATASET
+          bq rm -r -f -d ${{ vars.GOOGLE_CLOUD_PROJECT }}:$DEST_DATASET
 
   check:
     if: always()
