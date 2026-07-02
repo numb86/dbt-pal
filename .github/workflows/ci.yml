@@ -78,6 +78,9 @@ jobs:
         with:
           credentials_json: ${{ secrets.GOOGLE_CLOUD_SA_KEY }}
 
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v3
+
       - name: Verify BigQuery access
         run: bq ls
 
