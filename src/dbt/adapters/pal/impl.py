@@ -5,9 +5,12 @@ from typing import Set
 from dbt.adapters.base.impl import BaseAdapter
 from dbt.adapters.base.meta import available
 from dbt.adapters.contracts.connection import AdapterResponse
+from dbt.adapters.events.logging import AdapterLogger
 from dbt.adapters.factory import FACTORY, get_adapter_by_type
 
 from .connections import PalCredentials
+
+logger = AdapterLogger("pal")
 
 @contextmanager
 def _release_plugin_lock():
@@ -104,7 +107,7 @@ class PalAdapterWrapper:
 
         import re
         import sys
-        print("[pal] Executing Python model via exec()")
+        logger.info("Executing Python model via exec()")
 
         # Strip unnecessary parts from compiled_code
         # pyspark-related lines (from pyspark, import pyspark, spark = ..., spark.conf.set)
@@ -158,7 +161,7 @@ class PalAdapterWrapper:
         alias = parsed_model.get("alias", parsed_model["name"])
         table_ref = f"{database}.{schema}.{alias}"
 
-        print(f"[pal] Writing DataFrame to {table_ref}")
+        logger.info(f"Writing DataFrame to {table_ref}")
 
         connection = self._db_adapter.connections.get_thread_connection()
         client = connection.handle
@@ -175,13 +178,13 @@ class PalAdapterWrapper:
         job = client.load_table_from_dataframe(df, table_ref, job_config=job_config)
         job.result()
 
-        print(f"[pal] Written {job.output_rows} rows to {table_ref}")
+        logger.info(f"Written {job.output_rows} rows to {table_ref}")
 
     def _read_df_from_bigquery(self, table_name: str):
         # Read data from a BigQuery table and return it as a pandas DataFrame
         # By passing this method to the dbtObj constructor, this method gets executed when `dbt.ref()` is invoked in a Python model
 
-        print(f"[pal] Reading DataFrame from {table_name}")
+        logger.info(f"Reading DataFrame from {table_name}")
 
         connection = self._db_adapter.connections.get_thread_connection()
         client = connection.handle
@@ -189,7 +192,7 @@ class PalAdapterWrapper:
         sql = f"SELECT * FROM `{table_name}`"
         df = client.query(sql).to_dataframe()
 
-        print(f"[pal] Read {len(df)} rows from {table_name}")
+        logger.info(f"Read {len(df)} rows from {table_name}")
         return df
 
     @available
