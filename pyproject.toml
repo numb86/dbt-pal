@@ -7,11 +7,12 @@ name = "dbt-pal"
 dynamic = ["version"]
 description = "A dbt adapter for running Python models without Dataproc or BigQuery DataFrames."
 requires-python = ">=3.11"
-license = { text = "Apache-2.0" }
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 dependencies = [
     "dbt-common>=1.10,<2.0",
     "dbt-adapters>=1.19.0,<2.0",
-    "dbt-core>=1.11.0",
+    "dbt-core>=1.11.0,<2.0",
     "dbt-bigquery>=1.11.0,<2.0",
 ]
 readme = "README.md"
