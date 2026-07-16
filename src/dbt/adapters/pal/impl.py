@@ -134,16 +134,18 @@ class PalAdapterWrapper:
         try:
             namespace = {}
             exec(clean_code, namespace)
+
+            # Retrieve and invoke the user's python model code from `namespace`
+            # dbtObj requires a function that takes a table name and returns a DataFrame
+            # This instance becomes the `dbt` argument (first argument) of the Python model
+            model_func = namespace["model"]
+            dbt_obj_cls = namespace["dbtObj"]
+            dbt_obj = dbt_obj_cls(self._read_df_from_bigquery)
+            # project_root must still be on sys.path here: imports written inside the
+            # model function body execute when model_func() is called, not at exec() time
+            df = model_func(dbt_obj, None)
         finally:
             sys.path.remove(project_root)
-
-        # Retrieve and invoke the user's python model code from `namespace`
-        # dbtObj requires a function that takes a table name and returns a DataFrame
-        # This instance becomes the `dbt` argument (first argument) of the Python model
-        model_func = namespace["model"]
-        dbt_obj_cls = namespace["dbtObj"]
-        dbt_obj = dbt_obj_cls(self._read_df_from_bigquery)
-        df = model_func(dbt_obj, None)
 
         # If the Python model returned something, write the returned pandas DataFrame to BigQuery
         if df is not None:
