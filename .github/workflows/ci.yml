@@ -123,8 +123,15 @@ jobs:
       - name: Run dbt
         run: dbt run --project-dir tests/integration --profiles-dir tests/integration
 
-      - name: Verify SQL model output
-        run: bq query --use_legacy_sql=false --format=csv "SELECT * FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.$DEST_DATASET.sql_model\` ORDER BY id" | diff - tests/integration/expected/sql_model.csv
+      - name: Verify SQL view model output
+        run: |
+          bq query --use_legacy_sql=false --format=csv "SELECT * FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.$DEST_DATASET.sql_model_view\` ORDER BY id" | diff - tests/integration/expected/sql_model_view.csv
+          test "$(bq query --use_legacy_sql=false --format=csv "SELECT table_type FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.$DEST_DATASET.INFORMATION_SCHEMA.TABLES\` WHERE table_name = 'sql_model_view'" | tail -1)" = "VIEW"
+
+      - name: Verify SQL table model output
+        run: |
+          bq query --use_legacy_sql=false --format=csv "SELECT * FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.$DEST_DATASET.sql_model_table\` ORDER BY id" | diff - tests/integration/expected/sql_model_table.csv
+          test "$(bq query --use_legacy_sql=false --format=csv "SELECT table_type FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.$DEST_DATASET.INFORMATION_SCHEMA.TABLES\` WHERE table_name = 'sql_model_table'" | tail -1)" = "BASE TABLE"
 
       - name: Verify Python model output
         run: bq query --use_legacy_sql=false --format=csv "SELECT * FROM \`${{ vars.GOOGLE_CLOUD_PROJECT }}.$DEST_DATASET.python_model\` ORDER BY id" | diff - tests/integration/expected/python_model.csv
