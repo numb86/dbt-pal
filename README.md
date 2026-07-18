@@ -1,5 +1,10 @@
 # dbt-pal
 
+[![PyPI](https://img.shields.io/pypi/v/dbt-pal)](https://pypi.org/project/dbt-pal/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/dbt-pal)](https://pypi.org/project/dbt-pal/)
+[![CI](https://github.com/numb86/dbt-pal/actions/workflows/ci.yml/badge.svg)](https://github.com/numb86/dbt-pal/actions/workflows/ci.yml)
+[![License](https://img.shields.io/pypi/l/dbt-pal)](LICENSE)
+
 dbt-pal is **P**ython **A**dapter **L**ayer
 
 A dbt adapter for running Python models without Dataproc or BigQuery DataFrames.
