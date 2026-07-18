@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.2](https://github.com/numb86/dbt-pal/compare/v0.3.1...v0.3.2) (2026-07-18)
+
+
+### Bug Fixes
+
+* keep project root on sys.path while the Python model function runs ([#31](https://github.com/numb86/dbt-pal/issues/31)) ([229bf57](https://github.com/numb86/dbt-pal/commit/229bf570ade2b125eb17caf9f9522140caa5d7b4))
+* route log messages through dbt's logging system instead of print ([#29](https://github.com/numb86/dbt-pal/issues/29)) ([242b2cf](https://github.com/numb86/dbt-pal/commit/242b2cfeda7214f689ad49b885e3a8bc77e18932))
+
+
+### Dependencies
+
+* restrict dbt-core to &lt;2.0 and modernize license metadata ([#27](https://github.com/numb86/dbt-pal/issues/27)) ([bbef5ec](https://github.com/numb86/dbt-pal/commit/bbef5ecea06a37dd9fdac7a2a92ca7b949bb99f9))
+
 ## [0.3.1](https://github.com/numb86/dbt-pal/compare/v0.3.0...v0.3.1) (2026-03-03)
 
 
