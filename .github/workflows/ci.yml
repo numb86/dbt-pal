@@ -22,9 +22,9 @@ jobs:
           - python: "3.11"
           - python: "3.12"
           - python: "3.13"
-          # TODO: Add "3.14" once dbt-core 1.12 stable is released.
+          - python: "3.14"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-python@v6
         with:
@@ -56,29 +56,29 @@ jobs:
       matrix:
         include:
           - python: "3.11"
-            dbt-core: "1.11.3"
-            dbt-bigquery: "1.11.0"
+            dbt-core: "1.11.12"
+            dbt-bigquery: "1.11.3"
           - python: "3.12"
-            dbt-core: "1.11.3"
-            dbt-bigquery: "1.11.0"
+            dbt-core: "1.11.12"
+            dbt-bigquery: "1.11.3"
           - python: "3.13"
-            dbt-core: "1.11.3"
-            dbt-bigquery: "1.11.0"
+            dbt-core: "1.11.12"
+            dbt-bigquery: "1.11.3"
           # Python 3.14 is tested only against dbt 1.12: dbt-core 1.11 does not run on Python 3.14
           - python: "3.11"
-            dbt-core: "1.12.0b3"
-            dbt-bigquery: "1.12.0b1"
+            dbt-core: "1.12.0"
+            dbt-bigquery: "1.12.0"
           - python: "3.12"
-            dbt-core: "1.12.0b3"
-            dbt-bigquery: "1.12.0b1"
+            dbt-core: "1.12.0"
+            dbt-bigquery: "1.12.0"
           - python: "3.13"
-            dbt-core: "1.12.0b3"
-            dbt-bigquery: "1.12.0b1"
+            dbt-core: "1.12.0"
+            dbt-bigquery: "1.12.0"
           - python: "3.14"
-            dbt-core: "1.12.0b3"
-            dbt-bigquery: "1.12.0b1"
+            dbt-core: "1.12.0"
+            dbt-bigquery: "1.12.0"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-python@v6
         with:
