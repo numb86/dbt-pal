@@ -3,7 +3,6 @@ from contextlib import contextmanager
 from typing import Set
 
 from dbt.adapters.base.impl import BaseAdapter
-from dbt.adapters.base.meta import available
 from dbt.adapters.contracts.connection import AdapterResponse
 from dbt.adapters.events.logging import AdapterLogger
 from dbt.adapters.factory import FACTORY, get_adapter_by_type
@@ -69,7 +68,7 @@ class PalCredentialsWrapper:
     def type(self):
         # The value `type` should return depends on the context
         # When `type` is referenced during calls to the specified methods, returns `self._db_credentials.type`; otherwise returns `"pal"`
-        if _find_funcs_in_stack({"to_target_dict", "db_materialization"}):
+        if _find_funcs_in_stack({"to_target_dict"}):
             return self._db_credentials.type
         return "pal"
 
@@ -96,12 +95,12 @@ class PalAdapterWrapper:
     def type(self):
         # The value `type` should return depends on the context
         # When `type` is referenced during calls to the specified methods, returns `self._db_adapter.type()`; otherwise returns `"pal"`
-        if _find_funcs_in_stack({"render", "db_materialization"}):
+        if _find_funcs_in_stack({"render"}):
             return self._db_adapter.type()
         return "pal"
 
     def submit_python_job(self, parsed_model: dict, compiled_code: str) -> AdapterResponse:
-        # Called from the materialization macro when processing a Python model
+        # Called from the parent adapter's (e.g. dbt-bigquery's) materialization macro when processing a Python model
         # parsed_model: model info passed by dbt-core (`database`, `schema`, `alias`, etc.)
         # compiled_code: Python code compiled by the Adapter instance. Various boilerplate is appended to the user's code.
 
@@ -197,25 +196,6 @@ class PalAdapterWrapper:
         logger.info(f"Read {len(df)} rows from {table_name}")
         return df
 
-    @available
-    def db_materialization(self, context: dict, materialization: str):
-        # Called from the materialization macro when processing a SQL model
-
-        from dbt.clients.jinja import MacroGenerator
-        from dbt.parser.manifest import ManifestLoader
-
-        # The table materialization macro provided by the Adapter that `self._db_adapter.type()` returns is stored in `materialization_macro`
-        manifest = ManifestLoader.get_full_manifest(self.config)
-        materialization_macro = manifest.find_materialization_macro_by_name(
-            self.config.project_name, materialization, self._db_adapter.type()
-        )
-
-        # Generate an executable function from `materialization_macro`, then execute it
-        # Its return value directly becomes the return value of db_materialization()
-        return MacroGenerator(
-            materialization_macro, context, stack=context["context_macro_stack"]
-        )()
-
     def __getattr__(self, name):
         # Delegate all undefined property and method calls to `self._db_adapter`
         return getattr(self._db_adapter, name)
@@ -252,6 +232,7 @@ class PalAdapter(BaseAdapter):
 
             # Add the Adapter pointed to by db_credentials.type to the macro search path
             # This makes materialization macros searched in the order: pal -> bigquery -> default
+            # pal provides none, so the parent Adapter's macros are always the ones that run
             pal_plugin = FACTORY.get_plugin_by_name("pal")
             pal_plugin.dependencies = [db_credentials.type]
 

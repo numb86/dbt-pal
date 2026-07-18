@@ -46,7 +46,8 @@ my_project:
 
 ## Limitations
 
-- Only table materialization is supported
+- SQL models support the `table` and `view` materializations
+- Python models support only the `table` materialization
 - Python models are executed in the process running dbt, so the data size that can be handled depends on the memory of that process
 
 ## License
