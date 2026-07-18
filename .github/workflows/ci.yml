@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [main]
 
+# Cancel superseded runs: pushing to a PR cancels the previous run for that PR (same group name).
+# Pushes to main are never cancelled because the SHA makes each group name unique.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
 jobs:
   lint-and-install:
     runs-on: ubuntu-latest
