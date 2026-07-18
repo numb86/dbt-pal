@@ -36,7 +36,9 @@ jobs:
         run: dbt --version | grep -q -- "- pal:"
 
   integration-test:
-    if: github.event_name == 'push'
+    # Run on push to main, and on pull requests whose head branch lives in this repository.
+    # Fork PRs are excluded: GitHub does not pass secrets to them, so the job would only fail at authentication.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     needs: lint-and-install
     runs-on: ubuntu-latest
     # Job-specific datasets so that matrix jobs (and concurrent workflow runs) never share tables
@@ -166,6 +168,7 @@ jobs:
       - name: Verify required jobs succeeded
         run: |
           test "${{ needs.lint-and-install.result }}" = "success"
-          if [ "${{ github.event_name }}" = "push" ]; then
+          # Same condition as the integration-test job itself: require its success whenever it should have run
+          if [ "${{ github.event_name }}" = "push" ] || [ "${{ github.event.pull_request.head.repo.full_name }}" = "${{ github.repository }}" ]; then
             test "${{ needs.integration-test.result }}" = "success"
           fi
