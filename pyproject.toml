@@ -9,6 +9,14 @@ description = "A dbt adapter for running Python models without Dataproc or BigQu
 requires-python = ">=3.11"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
 dependencies = [
     "dbt-common>=1.10,<2.0",
     "dbt-adapters>=1.19.0,<2.0",
