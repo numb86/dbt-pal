@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from dbt.adapters.contracts.connection import Credentials
 
+
 @dataclass
 class PalCredentials(Credentials):
     # Class that manages connection info for the data platform, specified in the Plugin (src/dbt/adapters/pal/__init__.py)

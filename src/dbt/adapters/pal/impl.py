@@ -1,6 +1,5 @@
 import inspect
 from contextlib import contextmanager
-from typing import Set
 
 from dbt.adapters.base.impl import BaseAdapter
 from dbt.adapters.contracts.connection import AdapterResponse
@@ -27,7 +26,7 @@ def _find_db_profile(profile_name: str, db_profile_target_name: str):
     # Load a Profile object with the `target` specified by the db_profile field in `profiles.yml`
     # Uses various dbt-core functions to read, parse, and transform `profiles.yml`
 
-    from dbt.config.profile import read_profile, Profile
+    from dbt.config.profile import Profile, read_profile
     from dbt.config.renderer import ProfileRenderer
     from dbt.flags import get_flags
 
@@ -47,7 +46,7 @@ def _find_db_profile(profile_name: str, db_profile_target_name: str):
     return db_profile
 
 
-def _find_funcs_in_stack(funcs: Set[str]) -> bool:
+def _find_funcs_in_stack(funcs: set[str]) -> bool:
     # Returns True if any of the specified function names exist on the call stack
     frame = inspect.currentframe()
     while frame:
@@ -132,7 +131,7 @@ class PalAdapterWrapper:
         sys.path.insert(0, project_root) # add `project_root` to the list of directories Python searches for modules
         try:
             namespace = {}
-            exec(clean_code, namespace)
+            exec(clean_code, namespace)  # noqa: S102 -- running the user's Python model locally is the purpose of this adapter
 
             # Retrieve and invoke the user's python model code from `namespace`
             # dbtObj requires a function that takes a table name and returns a DataFrame
