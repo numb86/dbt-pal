@@ -26,9 +26,11 @@ pip install dbt-pal
 ### Prerequisites
 
 - Python >= 3.11
-- dbt-core >= 1.11.0
-- dbt-bigquery >= 1.11.0
+- dbt-core >= 1.11.0, < 2.0
+- dbt-bigquery >= 1.11.0, < 2.0
 - Authentication to BigQuery must be configured (e.g. `gcloud auth application-default login`)
+
+> **Note:** dbt-pal supports dbt Core v1.x only. [dbt v2](https://docs.getdbt.com/blog/dbt-v2-is-ga) is a Rust rewrite that does not load Python adapters, so it cannot be supported.
 
 ### profiles.yml Configuration
 
